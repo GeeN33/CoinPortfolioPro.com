@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+
+  web:
+    build: .
+    container_name: django_2
+    restart: always
+    command: python manage.py runserver 0.0.0.0:8007
+    volumes:
+      - .:/usr/src/app/
+    ports:
+      - 8007:8007
+
+  tg_bot:
+    build: .
+    container_name: tg_bot_2
+    restart: always
+    command: python manage.py bot_run
+    volumes:
+      - .:/usr/src/app/
+
+  celery_beat:
+    build: .
+    container_name: beat_2
+    restart: always
+    command: celery -A core beat -l INFO
+    volumes:
+      - .:/usr/src/app/
+    depends_on:
+      - web
+      - redis
+
+  celery_worker:
+    build: .
+    container_name: worker_2
+    restart: always
+    command: celery -A core worker -l INFO
+    volumes:
+      - .:/usr/src/app/
+    depends_on:
+      - web
+      - redis
+
+  redis:
+    image: redis:alpine
+    restart: always
+    container_name: redis
+
