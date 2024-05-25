@@ -10,7 +10,7 @@ services:
     volumes:
       - .:/usr/src/app/
     ports:
-      - 8007:8007
+      - 8707:8007
 
   tg_bot:
     build: .
