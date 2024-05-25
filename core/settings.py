@@ -155,10 +155,9 @@ STATICFILES_DIRS = [STATIC_DIR]
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-REDIS_HOST = env('REDIS_PORT', default='127.0.0.1'),
+REDIS_HOST = env('REDIS_HOST', default='127.0.0.1')
 
-REDIS_PORT = env('REDIS_PORT', default=6379),
-
+REDIS_PORT = int(env('REDIS_PORT', default=6379))
 
 CELERY_BROKER_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/0"
 CELERY_RESULT_BACKEND = "django-db"
