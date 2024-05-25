@@ -28,6 +28,11 @@ SECRET_KEY = env('SECRET_KEY', default='')
 TG_TOKEN = env('TG_TOKEN', default='')
 
 COINMARKETCAP_KEY = env('COINMARKETCAP_KEY', default='')
+
+COINSTATS_KEY = env('COINSTATS_KEY', default='')
+
+COMPARE_KEY = env('COMPARE_KEY', default='')
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DEBUG', default=True)
 
@@ -50,6 +55,7 @@ INSTALLED_APPS = [
     'django_celery_results',
     'portfolio_app',
     'tg_bot',
+    'api_exchange_app',
 ]
 
 MIDDLEWARE = [

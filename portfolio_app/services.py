@@ -7,7 +7,7 @@ from tg_bot.bot import bot
 from tg_bot.models import ProfileTg
 from django.conf import settings
 
-YOUR_API_KEY = settings.COINMARKETCAP_KEY
+API_KEY = settings.COINMARKETCAP_KEY
 # URL запроса к API CoinMarketCap
 url = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest'
 
@@ -22,7 +22,7 @@ def get_price_last(coin_name):
     # Заголовок с вашим ключом API
     headers = {
         'Accepts': 'application/json',
-        'X-CMC_PRO_API_KEY': YOUR_API_KEY,
+        'X-CMC_PRO_API_KEY': API_KEY,
     }
 
     # Отправка запроса
