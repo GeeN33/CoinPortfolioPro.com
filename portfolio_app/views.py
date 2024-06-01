@@ -17,5 +17,13 @@ class PortfolioView(APIView):
         )
         return Response(serializer_for_queryset.data)
 
+class PortfolioDetailView(APIView):
+    def get(self, request):
+        queryset = Portfolio.objects.filter(public=True).prefetch_related(
+            Prefetch('portfolioitem_set', queryset=PortfolioItem.objects.prefetch_related('transactions'))
+        ).last()
+        print(queryset)
+        return Response([])
+
 
 

@@ -44,7 +44,7 @@ class PortfolioItemMainAdmin(admin.ModelAdmin):
     model = PortfolioItem
     inlines = [TransactionInLine, ]
     list_display = (
-        'coin_name',
+        'coin',
         'profit',
         'percent',)
 

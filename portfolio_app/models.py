@@ -34,6 +34,20 @@ class Portfolio(models.Model):
             return f'Portfolio: {self.name}\n'
         else:
             return f'Portfolio: {self.name}\nbalance: {self.balance:.2f}\nprofit: {self.profit:.2f}\npercent: {self.percent:.2f}'
+
+class CoinIcon(models.Model):
+    name = models.CharField(max_length=50)
+    path = models.CharField(max_length=50)
+    def __str__(self):
+        return self.path
+
+class Coin(models.Model):
+    name = models.CharField(max_length=100)
+    price_last = models.FloatField(null=True, blank=True)
+    icon = models.CharField(max_length=50)
+    def __str__(self):
+        return self.name
+
 class PortfolioItem(models.Model):
     CHOICES = (
         ('1', 'Pending'),
@@ -42,26 +56,27 @@ class PortfolioItem(models.Model):
     portfolio = models.ForeignKey(Portfolio, on_delete=models.CASCADE)
     status = models.CharField(max_length=1, choices=CHOICES, default='2')
     exchange = models.ForeignKey(Exchange, on_delete=models.SET_NULL, null=True)
-    coin_name = models.CharField(max_length=100)
+    coin = models.ForeignKey(Coin, on_delete=models.CASCADE)
     event = models.ManyToManyField(Event, blank=True)
     profit = models.FloatField(null=True, blank=True)
     percent = models.FloatField(null=True, blank=True)
     notified = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.coin_name
+        return self.coin.name
 
     class Meta:
         ordering = ('id',)
         verbose_name = 'Coin'
         verbose_name_plural = 'Coins'
+
 class Transaction(models.Model):
     CHOICES = (
         ('1', 'Pending'),
         ('2', 'Opened'),
         ('3', 'Closed'),)
     status = models.CharField(max_length=1, choices=CHOICES, default='2')
-    coin = models.ForeignKey(PortfolioItem, on_delete=models.CASCADE, related_name='transactions')
+    item = models.ForeignKey(PortfolioItem, on_delete=models.CASCADE, related_name='transactions')
     amount = models.FloatField()
     profit = models.FloatField(default=0)
     percent = models.FloatField(default=0)

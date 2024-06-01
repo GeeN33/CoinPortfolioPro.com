@@ -1,6 +1,6 @@
 import time
 
-from portfolio_app.models import Portfolio, PortfolioItem, Event, Transaction, Exchange
+from portfolio_app.models import Portfolio, PortfolioItem, Event, Transaction, Exchange, CoinIcon, Coin
 import requests
 
 from tg_bot.bot import bot
@@ -40,46 +40,68 @@ def get_price_last(coin_name):
         print("Ошибка при получении данных")
         return 0
 
+def CoinPriceLast():
+    coins = Coin.objects.all()
+    for coin in coins:
+        time.sleep(1)
+        print(coin.name)
+        price_last = get_price_last(coin.name)
+        if price_last > 0:
+            coin.price_last = price_last
+            coin.save()
+
+
+def CoinPriceLastGet(name):
+    coin = Coin.objects.filter(name=name).last()
+    if coin:
+        return coin.price_last
+    else:
+        return 0
+
+
 def CalculatePortfolio():
-    portfolio = Portfolio.objects.filter(user_id=1).first()
+    CoinPriceLast()
 
-    items = PortfolioItem.objects.filter(portfolio=portfolio)
-    balance = 0
-    profit_sum1 = 0
-    amount_sum1 = 0
-    for item in items:
-         transactions = item.transactions.filter(calculate=True)
-         for transaction in transactions:
-           time.sleep(2)
-           price_last = get_price_last(item.coin_name)
-           if price_last > 0:
-               profit = (price_last * transaction.amount) - (transaction.price_open * transaction.amount)
-               amount_sum = transaction.price_open * transaction.amount
-               percent = (profit / (amount_sum / 100))
-               transaction.price_last = price_last
-               transaction.percent = percent
-               transaction.profit = profit
-               transaction.save()
+    portfolios = Portfolio.objects.all()
+
+    for portfolio in portfolios:
+        items = PortfolioItem.objects.filter(portfolio=portfolio)
+        balance = 0
+        profit_sum1 = 0
+        amount_sum1 = 0
+        for item in items:
+             transactions = item.transactions.filter(calculate=True)
+             for transaction in transactions:
+               time.sleep(2)
+               price_last = CoinPriceLastGet(item.coin.name)
+               if price_last > 0:
+                   profit = (price_last * transaction.amount) - (transaction.price_open * transaction.amount)
+                   amount_sum = transaction.price_open * transaction.amount
+                   percent = (profit / (amount_sum / 100))
+                   transaction.price_last = price_last
+                   transaction.percent = percent
+                   transaction.profit = profit
+                   transaction.save()
 
 
-         transactions = item.transactions.filter(calculate=True)
-         profit_sum = 0
-         amount_sum = 0
-         for transaction in transactions:
-             balance = balance + (transaction.price_last * transaction.amount)
-             profit_sum = profit_sum + transaction.profit
-             amount_sum = amount_sum + (transaction.price_open * transaction.amount)
+             transactions = item.transactions.filter(calculate=True)
+             profit_sum = 0
+             amount_sum = 0
+             for transaction in transactions:
+                 balance = balance + (transaction.price_last * transaction.amount)
+                 profit_sum = profit_sum + transaction.profit
+                 amount_sum = amount_sum + (transaction.price_open * transaction.amount)
 
-         item.profit = profit_sum
-         item.percent =  (profit_sum / (amount_sum / 100))
-         item.save()
-         profit_sum1 = profit_sum1 + profit_sum
-         amount_sum1 =  amount_sum1 + amount_sum
+             item.profit = profit_sum
+             item.percent =  (profit_sum / (amount_sum / 100))
+             item.save()
+             profit_sum1 = profit_sum1 + profit_sum
+             amount_sum1 =  amount_sum1 + amount_sum
 
-    portfolio.balance = balance
-    portfolio.profit = profit_sum1
-    portfolio.percent =  (profit_sum1 / ( amount_sum1 / 100))
-    portfolio.save()
+        portfolio.balance = balance
+        portfolio.profit = profit_sum1
+        portfolio.percent =  (profit_sum1 / ( amount_sum1 / 100))
+        portfolio.save()
 
 def Top10():
     tg = ProfileTg.objects.filter()
@@ -107,7 +129,6 @@ def EventPortfolio():
 
 def EventUpdata():
     PortfolioItem.objects.all().update(notified=False)
-
 
 def Loading_To_bd():
     print('start')
@@ -269,6 +290,42 @@ def Loading_To_bd():
             'price_open': 0.051,
             'amount': 998.525,
         },
+        {
+            'name': 'ZETA',
+            'exchange': 1,
+            'price_open': 2.1156,
+            'amount': 31.48848,
+        },
+        {
+            'name': 'SQR',
+            'exchange': 1,
+            'price_open': 115.92396,
+            'amount': 0.5,
+        },
+        {
+            'name': 'BCUT',
+            'exchange': 1,
+            'price_open': 320.06961,
+            'amount': 2.1156,
+        },
+        {
+            'name': 'ALT',
+            'exchange': 1,
+            'price_open': 79.48044,
+            'amount': 0.4799,
+        },
+        {
+            'name': 'VEGA',
+            'exchange': 1,
+            'price_open': 35.40456,
+            'amount': 0.9833,
+        },
+        {
+            'name': 'USDT',
+            'exchange': 1,
+            'price_open': 61.2349,
+            'amount': 0.9833,
+        },
     ]
 
     Exchange.objects.get_or_create(name=exchanges[0])
@@ -279,13 +336,16 @@ def Loading_To_bd():
     portfolio = Portfolio.objects.get_or_create(user_id=1, name='Best')[0]
 
     for coin in coins:
+        icon = CoinIcon.objects.filter(name=coin['name']).last()
+        coinnew = Coin.objects.get_or_create(name=coin['name'], price_last=coin['price_open'], icon=icon.path)[0]
         portfolioitem = \
-        PortfolioItem.objects.get_or_create(portfolio=portfolio, exchange_id=coin['exchange'], coin_name=coin['name'])[
+        PortfolioItem.objects.get_or_create(portfolio=portfolio, exchange_id=coin['exchange'], coin=coinnew)[
             0]
-        Transaction.objects.get_or_create(coin=portfolioitem, price_open=coin['price_open'], amount=coin['amount'])
+        Transaction.objects.get_or_create(item=portfolioitem, price_open=coin['price_open'], amount=coin['amount'])
         portfolioitem.event.add(event7)
         portfolioitem.event.add(event10)
         portfolioitem.event.add(event15)
         portfolioitem.save()
+
 
 
